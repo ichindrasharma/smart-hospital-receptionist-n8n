@@ -1,0 +1,914 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Welcome to Mama's Health",
+        "formDescription": "Mama's Health receptionist form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What is your name?"
+            },
+            {
+              "fieldLabel": "What is your email?",
+              "fieldType": "email"
+            },
+            {
+              "fieldLabel": "What is Your Phone Number?",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "What is your age?",
+              "fieldType": "number"
+            },
+            {
+              "fieldLabel": "What is your query?"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -416,
+        -96
+      ],
+      "id": "7d04d362-ad4a-4632-b151-63ef6c221e7f",
+      "name": "On form submission",
+      "webhookId": "51745045-6d5a-46d1-ab56-bbf72f5f5f68"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=You are the hospital receptionist for Mama's Health.\n\nRead this patient information.\n\nPatient Query:{{ $json['What is your query?'] }}\n\nYour role is to send the patient to correct ward from below:\nGeneral Ward : if the patients are suffering from general problems like fever, cold, cough, headache, etc.\nEmergency Ward : if the patients needs urgent care like accidents, heart attack, etc.\nMental Ward : if the patients is suffering from mental health conditions example depression, trauma, etc. \n\nOutput : only the ward name and not other text."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        -208,
+        -96
+      ],
+      "id": "ce24ab9a-da25-4ced-ab44-f7e7a77b1216",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "SiIczRsFgOvkgDfC",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "3f093b4d-9f74-4864-b808-481b9539ba2b",
+              "leftValue": "={{ $json.output[0].content[0].text }}",
+              "rightValue": "General Ward",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        144,
+        -96
+      ],
+      "id": "574107aa-755c-44dc-a15c-4571d696a526",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg",
+          "mode": "list",
+          "cachedResultName": "Mama's Hospital list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Ward Name",
+              "lookupValue": "General Ward"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Free"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        352,
+        -160
+      ],
+      "id": "303f99e1-1859-4203-9733-e4874f86d53e",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZfMVkIZOfAYE786U",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "have a new patient consult",
+        "emailType": "text",
+        "message": "=Hi, {{ $json['Doctor Name'] }}\nYou have new Patient Consultation.\nPatient Name : {{ $('On form submission').item.json['What is your name?'] }}\nPatient Query : {{ $('On form submission').item.json['What is your query?'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        -160
+      ],
+      "id": "b41a75bd-2dff-4f7f-a117-a17a00df805c",
+      "name": "Send a message",
+      "webhookId": "48bdd586-28b1-42c7-9a27-58d15726e98f",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json['What is your email?'] }}",
+        "subject": "Mama's Health Consultation Conformation",
+        "emailType": "text",
+        "message": "=Hi, {{ $('On form submission').item.json['What is your name?'] }}\nThis is your Consultation Conformation\nDoctor Name : {{ $('Get row(s) in sheet').item.json['Doctor Name'] }}\nYour Query : {{ $('On form submission').item.json['What is your query?'] }}\nTimming : {{ $('Get row(s) in sheet').item.json['Available Time'] }}\nWard Name : {{ $('Get row(s) in sheet').item.json['Ward Name'] }}\nThakyou,\nMama's Health Care Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        -160
+      ],
+      "id": "13774f81-ebf3-46d9-9c39-47d4c37c3f7d",
+      "name": "Send a message1",
+      "webhookId": "0b3c5d5a-b212-4998-8439-83cc7d3f4fc1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "dfadbbe0-062a-46a3-b52c-19ed176e0fc2",
+              "leftValue": "={{ $('Message a model').item.json.output[0].content[0].text }}",
+              "rightValue": "Emergency Ward",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        0
+      ],
+      "id": "5dc108cc-8606-4a5f-bda1-62ab0a3a0c92",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9505b767-bb0f-45f9-ae74-b8eb3ffc3bae",
+              "leftValue": "={{ $('Message a model').item.json.output[0].content[0].text }}",
+              "rightValue": "Mental Ward",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        608,
+        240
+      ],
+      "id": "cd5e8411-c002-4141-9e8f-71338909ae40",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg",
+          "mode": "list",
+          "cachedResultName": "Mama's Hospital list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Ward Name",
+              "lookupValue": "Emergency Ward"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Free"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        608,
+        32
+      ],
+      "id": "621dc49b-1436-4610-8f72-59b2f6daebf4",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZfMVkIZOfAYE786U",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Have a new Patient Consult",
+        "emailType": "text",
+        "message": "=Hi, {{ $json['Doctor Name'] }}\nYou have a new patient for consultation\nPatient Name : {{ $('On form submission').item.json['What is your name?'] }}\nPatient Query : {{ $('On form submission').item.json['What is your query?'] }}\nThankyou,\nMama's Health Receptionist ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        32
+      ],
+      "id": "a23d6774-9ddf-448a-a343-90155de9d70f",
+      "name": "Send a message2",
+      "webhookId": "ebcf0d5c-7f1e-4b9d-a951-b90ba2d43012",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json['What is your email?'] }}",
+        "subject": "Conformation of your Consultation",
+        "emailType": "text",
+        "message": "=Hi,  {{ $('On form submission').item.json['What is your name?'] }}\nYour Consultation is conformed\nDoctor Name : {{ $('Get row(s) in sheet1').item.json['Doctor Name'] }}\nYour Query : {{ $('On form submission').item.json['What is your query?'] }}\nWard Name : {{ $('Message a model').item.json.output[0].content[0].text }}\nTiming : {{ $('Get row(s) in sheet1').item.json['Available Time'] }}\nThankyou,\nMama's Health Care team.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        32
+      ],
+      "id": "275aca25-62a4-4a14-b5c1-012b301ee01d",
+      "name": "Send a message3",
+      "webhookId": "4b127303-3f2a-43bd-bbb7-270ca38f3a78",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg",
+          "mode": "list",
+          "cachedResultName": "Mama's Hospital list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Ward Name",
+              "lookupValue": "Mental Ward"
+            },
+            {
+              "lookupColumn": "Status",
+              "lookupValue": "Free"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        816,
+        224
+      ],
+      "id": "1cacdcca-3028-445a-9a9e-8029f46ac40a",
+      "name": "Get row(s) in sheet2",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZfMVkIZOfAYE786U",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Having new patient for counseling",
+        "emailType": "text",
+        "message": "=Hi, {{ $json['Doctor Name'] }}\nYou have new patient counseling :\nPatient Name : {{ $('On form submission').item.json['What is your name?'] }}\nAge : {{ $('On form submission').item.json['What is your age?'] }}\nPatient Query : {{ $('On form submission').item.json['What is your query?'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1024,
+        224
+      ],
+      "id": "77c2aa01-246c-41a1-a078-3145d78fd299",
+      "name": "Send a message4",
+      "webhookId": "c1e75122-960f-40de-917f-bc10d8602a9d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('On form submission').item.json['What is your email?'] }}",
+        "subject": "Conformation of Mental Health Consolation",
+        "emailType": "text",
+        "message": "=Hi, {{ $('On form submission').item.json['What is your name?'] }}\nYou Counseling is conformed.\nDoctor Name : {{ $('Get row(s) in sheet2').item.json['Doctor Name'] }}\nWard Name : {{ $('Get row(s) in sheet2').item.json['Ward Name'] }}\nTime Slot : {{ $('Get row(s) in sheet2').item.json['Available Time'] }}\nThankyou,\nMama's Health Team",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1232,
+        224
+      ],
+      "id": "83ee3849-ad7e-42d0-b80c-8d4da731f1b0",
+      "name": "Send a message5",
+      "webhookId": "101cac31-16e4-459d-a00d-1eb53031e5f3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "0BV6QjZple4kO7GR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg",
+          "mode": "list",
+          "cachedResultName": "Mama's Hospital list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Patient Name": "={{ $('On form submission').item.json['What is your name?'] }}",
+            "Summary": "={{ $('On form submission').item.json['What is your query?'] }}",
+            "Status": "Consulting"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Doctor Name",
+              "displayName": "Doctor Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ward Name",
+              "displayName": "Ward Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Available Time",
+              "displayName": "Available Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        -160
+      ],
+      "id": "f564e45e-1d05-40e5-85a2-e43f02e4e3e7",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZfMVkIZOfAYE786U",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg",
+          "mode": "list",
+          "cachedResultName": "Mama's Hospital list",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GPLe8hd4qvYJYaUVFf0u-GeoBZtjaCElYIeOKIu9reg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Doctor ID": "={{ $('Get row(s) in sheet2').item.json['Doctor ID'] }}",
+            "Status": "Consulting",
+            "Patient Name": "={{ $('On form submission').item.json['What is your name?'] }}",
+            "Summary": "={{ $('On form submission').item.json['What is your query?'] }}"
+          },
+          "matchingColumns": [
+            "Doctor ID"
+          ],
+          "schema": [
+            {
+              "id": "Doctor ID",
+              "displayName": "Doctor ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Doctor Name",
+              "displayName": "Doctor Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Phone Number",
+              "displayName": "Phone Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Ward Name",
+              "displayName": "Ward Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Available Time",
+              "displayName": "Available Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Patient Name",
+              "displayName": "Patient Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Summary",
+              "displayName": "Summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1440,
+        224
+      ],
+      "id": "2451a4e9-19e5-45b3-a579-16459da127a7",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZfMVkIZOfAYE786U",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message4": {
+      "main": [
+        [
+          {
+            "node": "Send a message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message5": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "428cd57b-985b-4100-b5aa-5533845bc35e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "64d4f2782d64f134add2bf869c977a1ae6f60fd83d853f31c42956f8209ed671"
+  },
+  "id": "nVpsoxVuZk0JPPXP",
+  "tags": []
+}
