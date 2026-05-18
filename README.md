@@ -50,4 +50,4 @@ It handles patient queries and assigns doctors based on availability.
 ## 💡 Future Improvements
 - Database integration
 - Real-time doctor availability dashboard
-- AI-based triage system
+- RAG-based triage system
