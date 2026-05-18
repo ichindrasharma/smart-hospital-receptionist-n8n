@@ -32,11 +32,11 @@ It handles patient queries and assigns doctors based on availability.
 ---
 
 ## 📷 Screenshots
-<img src = "ScreenShot/filling form by patient.png">
-<img src = "ScreenShot/form submited .png">
-<img src = "ScreenShot/n8n workflow against query.png">
-<img src = "ScreenShot/Mail to Doctor.png">
-<img src = "ScreenShot/Mail to Patient.jpeg">
+<img src = "ScreenShot/1_filling form by patient.png">
+<img src = "ScreenShot/2_form_submited .png">
+<img src = "ScreenShot/5_n8n workflow against query.png">
+<img src = "ScreenShot/3_Mail to Doctor.png">
+<img src = "ScreenShot/4_Mail to Patient.jpeg">
 
 ---
 
